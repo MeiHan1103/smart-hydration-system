@@ -170,6 +170,16 @@ IOT/
 包含 Raspberry Pi、I2C LCD 顯示器與智慧杯墊。  
 LCD 會即時顯示目前水量、距離上次飲水時間與提醒訊息。
 
+### LCD 即時顯示與飲水狀態回饋
+
+![LCD Status - Hydration OK](images/hydration_ok.jpg)
+
+系統透過 I2C LCD 顯示目前飲水狀態，  
+包含即時水量、距離上次飲水時間，以及今日累積飲水量。
+
+當系統判斷使用者近期已有飲水行為時，  
+LCD 會顯示「Hydration OK」與鼓勵訊息，  
+提供即時且直觀的回饋，提醒使用者維持良好的飲水習慣。
 
 ### LCD 即時顯示與提醒功能
 
