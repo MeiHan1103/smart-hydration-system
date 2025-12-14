@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>歷史記錄 - 智慧飲水系統</title>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f6ff;  /* 藍白背景 */
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        header {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 6px 20px rgba(0, 80, 180, 0.12);
+        }
+
+        h1 {
+            color: #2563eb;
+            font-size: 28px;
+            margin-bottom: 6px;
+        }
+
+        header p { color: #64748b; }
+
+        nav { display: flex; gap: 12px; margin-top: 15px; }
+
+        nav a {
+            padding: 10px 20px;
+            background: #e0ecff;
+            color: #2563eb;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        nav a:hover {
+            background: #2563eb;
+            color: white;
+        }
+
+        nav a.active {
+            background: #2563eb;
+            color: white;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 6px 20px rgba(0, 80, 180, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .card h2 { color: #2563eb; margin-bottom: 18px; font-size: 20px; }
+
+        .date-picker {
+            margin-bottom: 10px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            color: #334155;
+            font-weight: 600;
+        }
+
+        .date-picker input {
+            padding: 10px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .date-picker input:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+
+        .chart-container {
+            height: 380px;
+            margin-top: 16px;
+            position: relative;
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 12px;
+            border: 1px solid #e5e7eb;
+        }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        th {
+            background: #f8fafc;
+            color: #2563eb;
+            font-weight: 700;
+        }
+
+        tr:hover { background: #f8fafc; }
+
+        .error-message {
+            padding: 14px;
+            background: #fef2f2;
+            color: #b91c1c;
+            border-radius: 10px;
+            margin-top: 12px;
+            border: 1px solid #fecaca;
+        }
+
+        .empty-message {
+            padding: 30px;
+            text-align: center;
+            color: #94a3b8;
+        }
+
+        .summary-box {
+            margin-bottom: 15px;
+            padding: 14px;
+            background: #eff6ff;
+            border-radius: 10px;
+            border: 1px solid #dbeafe;
+            color: #1f2937;
+        }
+
+        .summary-box strong { color: #2563eb; }
+    </style>
+</head>
+
+<body>
+<div class="container">
+    <header>
+        <h1>智慧飲水系統</h1>
+        <p>查看歷史飲水記錄</p>
+        <nav>
+            <a href="/">即時監控</a>
+            <a href="/bottles">水壺管理</a>
+            <a href="/history" class="active">歷史記錄</a>
+            <a href="/settings">設定</a>
+        </nav>
+    </header>
+
+    <div class="card">
+        <h2>每小時飲水圖表</h2>
+        <div class="date-picker">
+            <label>選擇日期：</label>
+            <input type="date" id="dateInput" onchange="loadData()">
+        </div>
+
+        <div class="chart-container">
+            <canvas id="chart"></canvas>
+        </div>
+        <div id="chartError"></div>
+    </div>
+
+    <div class="card">
+        <h2>飲水記錄</h2>
+        <div id="recordList">
+            <div class="empty-message">載入中...</div>
+        </div>
+        <div id="recordError"></div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+    let myChart = null;
+
+    // 設定今天為預設日期
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    document.getElementById('dateInput').value = `${year}-${month}-${day}`;
+
+    async function loadData() {
+        const date = document.getElementById('dateInput').value;
+
+        await loadChart(date);
+        await loadRecords(date);
+    }
+
+    async function loadChart(date) {
+        const errorDiv = document.getElementById('chartError');
+        errorDiv.innerHTML = '';
+
+        try {
+            const response = await fetch(`/api/drinks/hourly?date=${date}`);
+            if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+
+            const data = await response.json();
+            if (data.success) renderChart(data.stats);
+            else throw new Error(data.error || '載入失敗');
+
+        } catch (error) {
+            errorDiv.innerHTML = `<div class="error-message">載入圖表失敗：${error.message}</div>`;
+            renderChart([]); // 顯示空圖
+        }
+    }
+
+    async function loadRecords(date) {
+        const container = document.getElementById('recordList');
+        const errorDiv = document.getElementById('recordError');
+        errorDiv.innerHTML = '';
+
+        try {
+            const response = await fetch(`/api/drinks/date/${date}`);
+            if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+
+            const data = await response.json();
+            if (data.success) renderRecords(data.drinks);
+            else throw new Error(data.error || '載入失敗');
+
+        } catch (error) {
+            container.innerHTML = '<div class="empty-message">載入失敗</div>';
+            errorDiv.innerHTML = `<div class="error-message">載入記錄失敗：${error.message}</div>`;
+        }
+    }
+
+    function renderChart(stats) {
+        const hours = Array.from({length: 24}, (_, i) => `${i}:00`);
+        const amounts = hours.map((_, i) => {
+            const stat = stats.find(s => parseInt(s.hour) === i);
+            return stat ? stat.total_ml : 0;
+        });
+
+        const maxAmount = Math.max(...amounts);
+        let yAxisMax;
+
+        if (maxAmount === 0) yAxisMax = 500;
+        else if (maxAmount <= 200) yAxisMax = 300;
+        else if (maxAmount <= 500) yAxisMax = 600;
+        else if (maxAmount <= 1000) yAxisMax = Math.ceil(maxAmount / 100) * 100 + 200;
+        else yAxisMax = Math.ceil(maxAmount / 500) * 500 + 500;
+
+        const ctx = document.getElementById('chart');
+
+        if (myChart) myChart.destroy();
+
+        myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: hours,
+                datasets: [{
+                    label: '飲水量 (ml)',
+                    data: amounts,
+                    backgroundColor: 'rgba(37, 99, 235, 0.55)',  // 藍
+                    borderColor: 'rgba(37, 99, 235, 1)',
+                    borderWidth: 2,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: true, position: 'top' },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return '飲水量: ' + context.parsed.y + ' ml';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: yAxisMax,
+                        ticks: { stepSize: yAxisMax <= 300 ? 50 : (yAxisMax <= 600 ? 100 : 200) },
+                        title: { display: true, text: '飲水量 (ml)' }
+                    },
+                    x: {
+                        title: { display: true, text: '時間' }
+                    }
+                }
+            }
+        });
+    }
+
+    function renderRecords(drinks) {
+        const container = document.getElementById('recordList');
+
+        if (drinks.length === 0) {
+            container.innerHTML = '<div class="empty-message">此日期沒有飲水記錄</div>';
+            return;
+        }
+
+        const total = drinks.reduce((sum, d) => sum + d.amount_ml, 0);
+
+        container.innerHTML = `
+            <div class="summary-box">
+                <strong>總計：${total} ml</strong> （共 ${drinks.length} 次）
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>時間</th>
+                        <th>飲水量</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${drinks.map(drink => `
+                        <tr>
+                           <td>${new Date(drink.timestamp).toLocaleString('zh-TW', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+    timeZone: 'Asia/Taipei'
+})}</td> 
+                            <td>${drink.amount_ml} ml</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+    }
+
+    loadData();
+</script>
+</body>
+</html>

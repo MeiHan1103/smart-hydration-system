@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智慧飲水系統 - 即時監控</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f6ff;   /* 藍白背景 */
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 6px 20px rgba(0, 80, 180, 0.12);
+        }
+
+        h1 {
+            color: #2563eb;
+            font-size: 28px;
+            margin-bottom: 6px;
+        }
+
+        header p {
+            color: #64748b;
+        }
+
+        nav {
+            display: flex;
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        nav a {
+            padding: 10px 20px;
+            background: #e0ecff;
+            color: #2563eb;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        nav a:hover {
+            background: #2563eb;
+            color: white;
+        }
+
+        nav a.active {
+            background: #2563eb;
+            color: white;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 6px 20px rgba(0, 80, 180, 0.1);
+        }
+
+        .card h2 {
+            color: #2563eb;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .status-card {
+            text-align: center;
+        }
+
+        .water-amount {
+            font-size: 72px;
+            font-weight: bold;
+            color: #2563eb;
+            margin: 20px 0;
+        }
+
+        .unit {
+            font-size: 24px;
+            color: #94a3b8;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .status-ok {
+            background: #22c55e;
+            color: white;
+        }
+
+        .status-drink {
+            background: #fb923c;
+            color: white;
+        }
+
+        .status-no-water {
+            background: #ef4444;
+            color: white;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 14px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .info-value {
+            color: #1f2937;
+            font-weight: bold;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 28px;
+            background: #e5e7eb;
+            border-radius: 14px;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #2563eb;
+            transition: width 0.4s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .bottle-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 18px;
+            background: #f8fafc;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .bottle-details h3 {
+            color: #1f2937;
+            margin-bottom: 4px;
+            font-size: 18px;
+        }
+
+        .bottle-details p {
+            color: #64748b;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+
+    <header>
+        <h1>智慧飲水系統</h1>
+        <p>即時監控您的飲水狀況</p>
+        <nav>
+            <a href="/" class="active">即時監控</a>
+            <a href="/bottles">水壺管理</a>
+            <a href="/history">歷史記錄</a>
+            <a href="/settings">設定</a>
+        </nav>
+    </header>
+
+    <div class="grid">
+        <!-- 當前水量 -->
+        <div class="card status-card">
+            <h2>當前水量</h2>
+            <div class="water-amount" id="currentWater">
+                0 <span class="unit">ml</span>
+            </div>
+            <div class="status-badge status-ok" id="statusBadge">
+                Hydration OK
+            </div>
+        </div>
+
+        <!-- 今日進度 -->
+        <div class="card">
+            <h2>今日飲水進度</h2>
+            <div class="info-row">
+                <span class="info-label">已飲用</span>
+                <span class="info-value" id="todayTotal">0 ml</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">目標</span>
+                <span class="info-value" id="dailyGoal">2000 ml</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar" style="width:0%">
+                    <span id="progressText">0%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 即時資訊 -->
+        <div class="card">
+            <h2>即時資訊</h2>
+            <div class="info-row">
+                <span class="info-label">距離上次飲水</span>
+                <span class="info-value" id="lastDrink">0 分鐘</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">提醒間隔</span>
+                <span class="info-value" id="remindInterval">60 分鐘</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">最後更新</span>
+                <span class="info-value" id="lastUpdate">--</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 當前水壺 -->
+    <div class="card" style="margin-bottom:20px;">
+        <h2>當前使用水壺</h2>
+        <div id="bottleInfo">
+            <p style="color:#94a3b8;">尚未選擇水壺，請至「水壺管理」設定</p>
+        </div>
+    </div>
+
+    <!-- 今日飲水記錄 -->
+    <div class="card">
+        <h2>今日飲水記錄</h2>
+        <div id="todayDrinks">
+            <p style="color:#94a3b8;">今日尚無飲水記錄</p>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    async function updateStatus() {
+        try {
+            const response = await fetch('/api/status');
+            const data = await response.json();
+
+            if (data.success) {
+                const { status, bottle, settings } = data;
+
+                document.getElementById('currentWater').innerHTML =
+                    `${status.water_ml} <span class="unit">ml</span>`;
+
+                const badge = document.getElementById('statusBadge');
+                badge.className = 'status-badge';
+                if (status.status === 'NO_WATER') {
+                    badge.classList.add('status-no-water');
+                    badge.textContent = 'NO WATER';
+                } else if (status.status === 'DRINK') {
+                    badge.classList.add('status-drink');
+                    badge.textContent = 'DRINK NOW';
+                } else {
+                    badge.classList.add('status-ok');
+                    badge.textContent = 'Hydration OK';
+                }
+
+                const dailyGoal = parseInt(settings.daily_goal_ml || 2000);
+                const todayTotal = status.today_total_ml;
+                const progress = Math.min(100, (todayTotal / dailyGoal) * 100);
+
+                document.getElementById('todayTotal').textContent = `${todayTotal} ml`;
+                document.getElementById('dailyGoal').textContent = `${dailyGoal} ml`;
+                document.getElementById('progressBar').style.width = `${progress}%`;
+                document.getElementById('progressText').textContent = `${Math.round(progress)}%`;
+
+                document.getElementById('lastDrink').textContent =
+                    `${status.last_drink_minutes} 分鐘`;
+                document.getElementById('remindInterval').textContent =
+                    `${settings.remind_interval_min || 60} 分鐘`;
+                document.getElementById('lastUpdate').textContent =
+                    new Date().toLocaleTimeString('zh-TW');
+
+                if (bottle) {
+                    document.getElementById('bottleInfo').innerHTML = `
+                        <div class="bottle-info">
+                            <div class="bottle-details">
+                                <h3>${bottle.name}</h3>
+                                <p>空壺重量: ${bottle.empty_weight}g ｜ 容量: ${bottle.capacity}ml</p>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+        } catch (error) {
+            console.error('更新狀態失敗:', error);
+        }
+    }
+
+    async function updateTodayDrinks() {
+        try {
+            const response = await fetch('/api/drinks/today');
+            const data = await response.json();
+
+            if (data.success && data.drinks.length > 0) {
+                document.getElementById('todayDrinks').innerHTML =
+                    data.drinks.map(d => `
+                        <div class="info-row">
+                            <span class="info-label">
+                                ${new Date(d.timestamp).toLocaleTimeString('zh-TW')}
+                            </span>
+                            <span class="info-value">${d.amount_ml} ml</span>
+                        </div>
+                    `).join('');
+            }
+        } catch (error) {
+            console.error('更新記錄失敗:', error);
+        }
+    }
+
+    updateStatus();
+    updateTodayDrinks();
+    setInterval(updateStatus, 2000);
+    setInterval(updateTodayDrinks, 5000);
+</script>
+
+</body>
+</html>

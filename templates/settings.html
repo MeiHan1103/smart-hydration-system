@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>設定 - 智慧飲水系統</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f6ff;   /* 藍白背景 */
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 6px 20px rgba(0, 80, 180, 0.12);
+        }
+
+        h1 {
+            color: #2563eb;
+            font-size: 28px;
+            margin-bottom: 6px;
+        }
+
+        header p {
+            color: #64748b;
+        }
+
+        nav {
+            display: flex;
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        nav a {
+            padding: 10px 20px;
+            background: #e0ecff;
+            color: #2563eb;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        nav a:hover {
+            background: #2563eb;
+            color: white;
+        }
+
+        nav a.active {
+            background: #2563eb;
+            color: white;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 6px 20px rgba(0, 80, 180, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            color: #2563eb;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: #334155;
+            font-weight: 600;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+
+        .form-group .hint {
+            color: #64748b;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1e40af;
+            transform: translateY(-2px);
+        }
+
+        .success-message {
+            background: #22c55e;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            font-weight: 600;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+
+    <header>
+        <h1>智慧飲水系統</h1>
+        <p>系統設定</p>
+        <nav>
+            <a href="/">即時監控</a>
+            <a href="/bottles">水壺管理</a>
+            <a href="/history">歷史記錄</a>
+            <a href="/settings" class="active">設定</a>
+        </nav>
+    </header>
+
+    <div id="successMessage" class="success-message">
+        ✓ 設定已儲存！
+    </div>
+
+    <div class="card">
+        <h2>系統設定</h2>
+
+        <form id="settingsForm">
+            <div class="form-group">
+                <label>每日飲水目標 (ml)</label>
+                <input type="number" id="dailyGoal" value="2000" min="500" max="5000" step="100">
+                <div class="hint">建議成人每日飲水量：2000–2500 ml</div>
+            </div>
+
+            <div class="form-group">
+                <label>提醒間隔 (分鐘)</label>
+                <input type="number" id="remindInterval" value="3" min="1" max="180" step="1">
+                <div class="hint">超過此時間未飲水將顯示提醒（DEMO 可設為 3 分鐘）</div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                儲存設定
+            </button>
+        </form>
+    </div>
+
+</div>
+
+<script>
+    async function loadSettings() {
+        try {
+            const response = await fetch('/api/settings');
+            const data = await response.json();
+
+            if (data.success) {
+                document.getElementById('dailyGoal').value =
+                    data.settings.daily_goal_ml || 2000;
+                document.getElementById('remindInterval').value =
+                    data.settings.remind_interval_min || 3;
+            }
+        } catch (error) {
+            console.error('載入設定失敗:', error);
+        }
+    }
+
+    document.getElementById('settingsForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const settings = {
+            daily_goal_ml: document.getElementById('dailyGoal').value,
+            remind_interval_min: document.getElementById('remindInterval').value
+        };
+
+        try {
+            const response = await fetch('/api/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(settings)
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                const msg = document.getElementById('successMessage');
+                msg.classList.add('show');
+                setTimeout(() => msg.classList.remove('show'), 3000);
+            } else {
+                alert('儲存失敗：' + data.error);
+            }
+        } catch (error) {
+            alert('儲存失敗：' + error.message);
+        }
+    });
+
+    loadSettings();
+</script>
+
+</body>
+</html>
