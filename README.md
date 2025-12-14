@@ -183,14 +183,12 @@ IOT/
 
 ## 參考資料（References）
 
-1. Roy Yang, *Bluetooth Finger Keyboard Project*  
-   https://github.com/roy79231/bluetooth_finger_keyboard
 
-2. HX711 Python Library  
+1. HX711 Python Library  
    https://github.com/tatobari/hx711py
 
-3. Flask Official Documentation  
+2. Flask Official Documentation  
    https://flask.palletsprojects.com/
 
-4. Raspberry Pi GPIO Documentation  
+3. Raspberry Pi GPIO Documentation  
    https://www.raspberrypi.com/documentation/
