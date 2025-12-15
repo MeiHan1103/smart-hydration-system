@@ -93,7 +93,7 @@ pip3 install -r requirements.txt
 ### 4.執行系統 
 請先進入本專案資料夾：
 ```bash
-cd IOT
+cd smart-hydration-system
 ```
 接著請開啟兩個 Terminal 視窗，分別執行以下指令。
 
@@ -133,11 +133,11 @@ Ctrl + C
 ## 專案結構說明（Project Structure）
 
 ```text
-IOT/
+smart-hydration-system/
 ├── main.py
 ├── app.py
 ├── database.py
-├── hydration.db
+├── requirements.txt
 ├── templates/
 │   ├── index.html
 │   ├── bottles.html
