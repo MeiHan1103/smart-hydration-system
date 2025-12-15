@@ -254,8 +254,9 @@ Web Dashboard 提供即時飲水狀態監控，
 3. Raspberry Pi GPIO Documentation  
    https://www.raspberrypi.com/documentation/
 
-4.Getting Started with Load Cells      
-   https://learn.sparkfun.com/tutorials/getting-started-with-load-
+4. Getting Started with Load Cells  
+https://learn.sparkfun.com/tutorials/getting-started-with-load-cells
+
 
 5. RPLCD Documentation  
    https://rplcd.readthedocs.io/
