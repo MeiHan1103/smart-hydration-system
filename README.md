@@ -154,9 +154,6 @@ smart-hydration-system/
 - `database.py`：
 負責建立與管理 SQLite 資料庫，儲存飲水紀錄與系統設定。
 
-- `hydration.db`：
-系統使用的資料庫檔案，儲存飲水歷史資料。
-
 - `templates/`：
 存放 Web Dashboard 使用的 HTML 頁面。
 
