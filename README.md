@@ -88,7 +88,7 @@ sudo reboot
 ```
 ### 3.安裝 Python 套件
 ```bash
-pip3 install flask RPLCD hx711
+pip3 install -r requirements.txt
 ```
 ### 4.執行系統 
 請先進入本專案資料夾：
