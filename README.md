@@ -1,4 +1,4 @@
-# Smart Hydration System 智慧飲水提醒系統 
+# Smart Hydration System 智慧飲水系統 
 
 ---
 ## 介紹（Overview）
